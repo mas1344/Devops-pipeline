@@ -24,10 +24,16 @@ def get_response() -> requests.Response:
         raise RuntimeError(f"API request failed: {e}") from e
 
 
-def transform(response: requests.Response) -> dict[str, Any]:
+def get_json_data() -> dict[str, Any]:
+    response = get_response()
     try:
-        data = response.json()
+        return response.json()
+    except requests.exceptions.JSONDecodeError as e:
+        raise RuntimeError(f"Invalid JSON response: {e}") from e
 
+
+def transform(data: dict[str, Any]) -> dict[str, Any]:
+    try:
         coin_data = next(iter(data["data"].values()))
         crypto_data = next(iter(coin_data))
         quote_dict = crypto_data["quote"]
@@ -57,10 +63,8 @@ def transform(response: requests.Response) -> dict[str, Any]:
 
     except (StopIteration, KeyError, TypeError, AttributeError) as e:
         raise RuntimeError(f"Invalid API response structure: {e}") from e
-    except requests.exceptions.JSONDecodeError as e:
-        raise RuntimeError(f"Invalid JSON response: {e}") from e
 
 
 def get_crypto_data() -> dict[str, Any]:
-    response = get_response()
-    return transform(response)
+    json_data = get_json_data()
+    return transform(json_data)
