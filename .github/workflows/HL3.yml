@@ -1,0 +1,16 @@
+name: Run on push to De25-ms
+
+on:
+  push:
+    branches:
+      - De25-ms
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Say hello
+        run: echo "Hello World"
