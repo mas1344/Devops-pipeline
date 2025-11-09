@@ -1,5 +1,7 @@
+from urllib import response
 from webapp.crypto_api import transform, get_response
 import pytest
+import os
 
 @pytest.mark.unit
 def test_transform():
@@ -67,9 +69,25 @@ def test_response():
     # Assert: Verify response status and structure
     assert response.status_code == 200, "API should return successful status code"
     
+    # Get configured symbol from environment (defaults to BTC if not set)
+    expected_symbol = os.getenv("COINMARKETCAP_SYMBOLS", "BTC").strip()
+    
+    # Verify response contains expected data structure
+    response_data = response.json()
+    assert "data" in response_data, "Response should contain 'data' field"
+    assert expected_symbol in response_data["data"], f"Response should contain {expected_symbol} data"
+    
+    # Verify crypto data has required structure
+    crypto_data = response_data["data"][expected_symbol][0]
+    assert "symbol" in crypto_data, f"{expected_symbol} data should have symbol field"
+    assert "quote" in crypto_data, f"{expected_symbol} data should have quote field"
+    assert "USD" in crypto_data["quote"], "Quote should contain USD data"
+    assert "price" in crypto_data["quote"]["USD"], "USD quote should have price field"
+    
+    # Verify data types and content
+    assert isinstance(crypto_data["quote"]["USD"]["price"], (int, float)), "Price should be numeric"
+    assert crypto_data["symbol"] == expected_symbol, f"Symbol should match expected cryptocurrency {expected_symbol}"
 
-
-
-
+    
 
 
