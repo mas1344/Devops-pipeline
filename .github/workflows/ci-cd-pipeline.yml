@@ -11,6 +11,11 @@ on:
         default: false
         type: boolean
 
+env:
+  COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+  COINMARKETCAP_SYMBOLS: "BTC"
+  UPDATE_FREQ_SEC: 60
+
 jobs:
   test:
     name: Run Tests
@@ -34,6 +39,7 @@ jobs:
         run: |
           echo "Running tests..."
           uv run pytest src/tests/ -v
+
       
       - name: Test completed
         run: |
