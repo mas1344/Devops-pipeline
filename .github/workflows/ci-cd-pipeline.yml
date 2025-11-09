@@ -1,0 +1,40 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+    inputs:
+      log_errors:
+        description: 'Generate error logs on test failure'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          echo "Installing dependencies..."
+          pip install uv
+          uv sync --extra dev
+      
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          uv run pytest src/tests/ -v
+      
+      - name: Test completed
+        run: |
+          echo "✅ Tests completed successfully!"
