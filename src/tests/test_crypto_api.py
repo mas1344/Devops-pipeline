@@ -1,6 +1,7 @@
 from webapp.crypto_api import transform, get_response
+import pytest
 
-
+@pytest.mark.unit
 def test_transform():
     """
     Unit test for transform function.
@@ -53,11 +54,19 @@ def test_transform():
     # Metadata
     assert result["last_updated"] == "2024-01-01T12:00:00.000Z", "Last updated timestamp should be preserved"
 
+@pytest.mark.integration
 def test_response():
+    """
+    Integration test for get_response function.
+    
+    Tests that the function can successfully connect to the CoinMarketCap API
+    and receive a valid response.
+    """
+    # Act: Call the API function
     response = get_response()
-
-    assert response.status_code == 200
-
+    # Assert: Verify response status and structure
+    assert response.status_code == 200, "API should return successful status code"
+    
 
 
 
