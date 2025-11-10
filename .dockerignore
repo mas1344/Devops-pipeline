@@ -6,3 +6,9 @@ __pycache__/
 *.pyc
 .pytest_cache/
 README.md
+.vscode/
+*.log
+.DS_Store
+.gitignore
+Dockerfile
+.dockerignore
