@@ -44,3 +44,21 @@ jobs:
       - name: Test completed
         run: |
           echo "✅ Tests completed successfully!"
+
+      - name: Generate error logs
+        if: failure() && github.event.inputs.log_errors == 'true'
+        run: |
+          echo "=== Test Failure Report ===" > error.log
+          echo "Timestamp: $(date)" >> error.log
+          echo "Branch: ${{ github.ref }}" >> error.log
+          echo "Commit: ${{ github.sha }}" >> error.log
+          echo "" >> error.log
+          uv run pytest src/tests/ --tb=long >> error.log 2>&1
+
+      - name: Upload error logs
+        if: failure() && github.event.inputs.log_errors == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-error-logs-${{ github.run_number }}
+          path: error.log
+
