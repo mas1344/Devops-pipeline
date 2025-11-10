@@ -42,7 +42,6 @@ venv/
 .uv/
 .cache/
 pip-cache/
-uv.lock
 
 # Editor directories and files
 .idea/
