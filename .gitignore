@@ -75,3 +75,11 @@ local_settings.py
 *.secrets
 secrets.json
 
+# terraform related files
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars.backup
+crash.log
+.terraform.lock.*
+*.tfplan
