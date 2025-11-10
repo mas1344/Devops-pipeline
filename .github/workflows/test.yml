@@ -1,0 +1,12 @@
+
+name: Placeholder Workflow
+
+on:
+    push:
+        branches: [ main ]
+
+jobs:
+    placeholder_job:
+        runs-on: ubuntu-latest
+        steps:
+            - run: echo OK
