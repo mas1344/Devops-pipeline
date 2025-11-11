@@ -82,4 +82,5 @@ secrets.json
 *.tfvars.backup
 crash.log
 .terraform.lock.*
+terraform.tfvars
 *.tfplan

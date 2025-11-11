@@ -39,3 +39,9 @@ variable "update_freq_sec" {
   type        = string
   default     = "60"
 }
+
+variable "azure_subscription_id" {
+  description = "Azure subscription ID"
+  type        = string
+  sensitive   = true
+}

@@ -121,9 +121,12 @@ jobs:
           terraform plan -out=tfplan
         env:
           TF_VAR_coinmarketcap_api_key: ${{ secrets.COINMARKETCAP_API_KEY }}
-      
+          TF_VAR_azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Terraform Apply
         run: |
           cd terraform/01-infrastructure
           terraform apply tfplan
+        env:
+          TF_VAR_azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
