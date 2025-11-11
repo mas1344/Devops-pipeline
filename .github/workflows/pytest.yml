@@ -1,0 +1,37 @@
+
+name: Test with pytest
+
+on:
+  workflow_dispatch:
+    inputs:
+      logging_artifact:
+        description: Generate logging artifact
+        required: true
+        type: boolean
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv w/ Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv sync --group test --locked
+
+      - name: Test with pytest
+        run: uv run pytest --cov=src --cov-report=term
+        env:
+          COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+      
+      - name: Generate logging artifact
+        if: ${{ failure() && inputs.logging_artifact }}
+        run: echo workflow failure, logging_artifact is true
