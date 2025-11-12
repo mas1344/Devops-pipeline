@@ -8,8 +8,7 @@ on:
       log_errors:
         description: 'Generate error logs on test failure (manual run)'
         required: false
-        default: false
-        type: boolean
+        default: "false"
 
 env:
   COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
