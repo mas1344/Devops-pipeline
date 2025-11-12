@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
     inputs:
       log_errors:
-        description: 'Generate error logs on test failure'
-        required: true
+        description: 'Generate error logs on test failure (manual run)'
+        required: false
         default: false
         type: boolean
 
@@ -20,6 +20,8 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    outputs:
+      tests_result: ${{ steps.test_outcome.outputs.result }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,17 +38,44 @@ jobs:
           uv sync --extra dev
       
       - name: Run tests
+        id: run_tests
+        continue-on-error: true
         run: |
           echo "Running tests..."
           uv run pytest src/tests/ -v
 
-      
-      - name: Test completed
+      - name: Set test outcome
+        id: test_outcome
         run: |
-          echo "✅ Tests completed successfully!"
+          if [ "${{ steps.run_tests.outcome }}" = "success" ]; then
+            echo "result=success" >> $GITHUB_OUTPUT
+            echo "✅ Tests completed successfully!"
+          else
+            echo "result=failure" >> $GITHUB_OUTPUT
+            echo "❌ Tests failed"
+          fi
 
+  error_logs:
+    name: Generate Error Logs
+    needs: test
+    if: needs.test.outputs.tests_result == 'failure' && github.event.inputs.log_errors == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          echo "Installing dependencies..."
+          pip install uv
+          uv sync --extra dev
+      
       - name: Generate error logs
-        if: failure() && github.event.inputs.log_errors == 'true'
         run: |
           echo "=== Test Failure Report ===" > error.log
           echo "Timestamp: $(date)" >> error.log
@@ -56,7 +85,6 @@ jobs:
           uv run pytest src/tests/ --tb=long >> error.log 2>&1
 
       - name: Upload error logs
-        if: failure() && github.event.inputs.log_errors == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: test-error-logs-${{ github.run_number }}
@@ -65,7 +93,7 @@ jobs:
   build:
     name: Build Docker Image
     needs: test
-    if: success()
+    if: needs.test.outputs.tests_result == 'success'
     runs-on: ubuntu-latest
     
     steps:
