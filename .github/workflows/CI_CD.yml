@@ -23,6 +23,9 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
 
+      - name: Add src to PYTHONPATH
+        run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/src" >> $GITHUB_ENV
+
       - name: Run unit tests
         run: pytest -v
 

@@ -24,6 +24,3 @@ packages = ["src/webapp"]
 [tool.hatch.build.targets.wheel.sources]
 "src" = ""
 
-[tool.pytest.ini_options]
-pythonpath = ["src"]
-
