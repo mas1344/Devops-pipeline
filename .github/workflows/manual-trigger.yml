@@ -1,0 +1,116 @@
+name: CI/CD Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      log_errors:
+        description: 'Generate error logs on test failure (manual run)'
+        required: false
+        default: "false"
+
+env:
+  COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+  COINMARKETCAP_SYMBOLS: "BTC"
+  UPDATE_FREQ_SEC: 60
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    outputs:
+      tests_result: ${{ steps.test_outcome.outputs.result }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          echo "Installing dependencies..."
+          pip install uv
+          uv sync --extra dev
+      
+      - name: Run tests
+        id: run_tests
+        continue-on-error: true
+        run: |
+          echo "Running tests..."
+          uv run pytest src/tests/ -v
+
+      - name: Set test outcome
+        id: test_outcome
+        run: |
+          if [ "${{ steps.run_tests.outcome }}" = "success" ]; then
+            echo "result=success" >> $GITHUB_OUTPUT
+            echo "✅ Tests completed successfully!"
+          else
+            echo "result=failure" >> $GITHUB_OUTPUT
+            echo "❌ Tests failed"
+          fi
+
+  error_logs:
+    name: Generate Error Logs
+    needs: test
+    if: needs.test.outputs.tests_result == 'failure' && github.event.inputs.log_errors == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          echo "Installing dependencies..."
+          pip install uv
+          uv sync --extra dev
+      
+      - name: Generate error logs
+        run: |
+          echo "=== Test Failure Report ===" > error.log
+          echo "Timestamp: $(date)" >> error.log
+          echo "Branch: ${{ github.ref }}" >> error.log
+          echo "Commit: ${{ github.sha }}" >> error.log
+          echo "Running pytest with detailed output..." >> error.log
+          uv run pytest src/tests/ --tb=long -v >> error.log 2>&1 || true
+
+      - name: Upload error logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-error-logs-${{ github.run_number }}
+          path: error.log
+
+  build:
+    name: Build Docker Image
+    needs: test
+    if: needs.test.outputs.tests_result == 'success'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/crypto-dashboard:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
