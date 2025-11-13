@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Manual CI/CD Testing
 
 on:
   workflow_dispatch:
@@ -20,6 +20,12 @@ jobs:
     outputs:
       tests_result: ${{ steps.test_outcome.outputs.result }}
     steps:
+      - name: Show workflow info
+        run: |
+          echo "🔧 Manual CI/CD Testing"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Error logging enabled: ${{ github.event.inputs.log_errors }}"
+      
       - name: Checkout code
         uses: actions/checkout@v4
       
@@ -55,7 +61,7 @@ jobs:
   error_logs:
     name: Generate Error Logs
     needs: test
-    if: needs.test.outputs.tests_result == 'failure' && github.event.inputs.log_errors == 'true'
+    if: always() && needs.test.outputs.tests_result == 'failure' && github.event.inputs.log_errors == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
