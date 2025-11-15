@@ -84,20 +84,3 @@ jobs:
         run: |
           docker tag $REGISTRY/$IMAGE_NAME:$IMAGE_TAG $REGISTRY/$IMAGE_NAME:latest
           docker push $REGISTRY/$IMAGE_NAME:latest
-
-  deploy:
-    name: Deploy to Azure Web App
-    needs: build_and_push
-    runs-on: ubuntu-latest
-    if: needs.build_and_push.result == 'success'
-    env:
-      IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/crypto-app
-      IMAGE_TAG: ${{ github.sha }}
-
-    steps:
-      - name: Deploy container to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: docker.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
