@@ -16,7 +16,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "COINMARKET_API_KEY=${{ secrets.COINMARKET_API_KEY }}" >> .env
+          echo "COINMARKETCAP_API_KEY=${{ secrets.COINMARKET_API_KEY }}" >> .env
           echo "COINMARKETCAP_SYMBOLS=${{ secrets.COINMARKETCAP_SYMBOLS }}" >> .env
           echo "UPDATE_FREQ_SEC=${{ secrets.UPDATE_FREQ_SEC }}" >> .env
 
