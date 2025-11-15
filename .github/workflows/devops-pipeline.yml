@@ -4,15 +4,7 @@ on:
   push:
     branches: [ "De25-ms" ]
   workflow_dispatch:
-    inputs:
-      log_errors:
-        description: "Logga fel som artefakt?"
-        required: true
-        default: "false"
-        type: choice
-        options:
-          - "true"
-          - "false"
+  
 
 jobs:
 
@@ -24,7 +16,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "COINMARKET_API_KEY=${{ secrets.COINMARKET_API_KEY }}" >> .env
+          echo "COINMARKETCAP_API_KEY=${{ secrets.COINMARKETCAP_API_KEY }}" >> .env
           echo "COINMARKETCAP_SYMBOLS=${{ secrets.COINMARKETCAP_SYMBOLS }}" >> .env
           echo "UPDATE_FREQ_SEC=${{ secrets.UPDATE_FREQ_SEC }}" >> .env
 
@@ -36,7 +28,7 @@ jobs:
 
       - name: Unit and integration test
         run: |
-          pytest tests/test_crypto_api.py || (echo "tests failed, see below:" > error.log && pytest tests/test_crypto_api.py >> error.log 2>&1)
+          PYTHONPATH=src pytest src/tests/test_crypto_api.py || (echo "tests failed, see below:" > error.log && pytest tests/test_crypto_api.py >> error.log 2>&1)
 
   log_errors:
     needs: test
