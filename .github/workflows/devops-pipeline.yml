@@ -4,15 +4,7 @@ on:
   push:
     branches: [ "De25-ms" ]
   workflow_dispatch:
-    inputs:
-      log_errors:
-        description: "Logga fel som artefakt?"
-        required: true
-        default: "false"
-        type: choice
-        options:
-          - "true"
-          - "false"
+  
 
 jobs:
 
