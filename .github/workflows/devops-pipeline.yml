@@ -4,6 +4,15 @@ on:
   push:
     branches: [ "De25-ms" ]
   workflow_dispatch:
+    inputs:
+      log_error:
+        description: "upload error log if tests faail"
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
   
 
 jobs:
