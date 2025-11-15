@@ -28,7 +28,12 @@ jobs:
 
       - name: Unit and integration test
         run: |
-          PYTHONPATH=src pytest src/tests/test_crypto_api.py || (echo "tests failed, see below:" > error.log && pytest tests/test_crypto_api.py >> error.log 2>&1)
+          PYTHONPATH=src pytest src/tests/test_crypto_api.py || (
+            echo "tests failed, see below:" > error.log
+            PYTHONPATH=src pytest src/tests/test_crypto_api.py >> error.log 2>&1
+            exit 1
+          )
+
 
   log_errors:
     needs: test
@@ -40,6 +45,7 @@ jobs:
         with:
           name: error-log
           path: error.log
+
 
   build-and-push:
     needs: test
