@@ -34,17 +34,13 @@ jobs:
             exit 1
           )
 
-
-  log_errors:
-    needs: test
-    runs-on: ubuntu-latest
-    if: ${{ needs.test.result == 'failure' }}
-    steps:
       - name: Upload error log
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: error-log
           path: error.log
+
 
 
   build-and-push:
