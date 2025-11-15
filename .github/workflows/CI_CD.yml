@@ -1,0 +1,86 @@
+name: MM2
+
+on:
+  push:
+    branches: ["main", "feature_Maryam"]
+      
+  workflow_dispatch:
+    inputs:
+      save_logs:
+        description: "If true and tests fail, upload pytest log as artifact"
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  tests:
+    name: Run tests
+    runs-on: ubuntu-latest
+    env:
+      SAVE_LOGS: ${{ github.event.inputs.save_logs || 'false' }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run pytest and write logs
+        id: run_tests
+        continue-on-error: true
+        run: |
+          mkdir -p logs
+          pytest -v 2>&1 | tee logs/pytest.log
+
+      - name: Upload test logs artifact
+        if: steps.run_tests.outcome == 'failure' && env.SAVE_LOGS == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-logs
+          path: logs/pytest.log
+
+      - name: Fail job if tests failed
+        if: steps.run_tests.outcome == 'failure'
+        run: |
+          echo "Tests failed. Failing job."
+          exit 1
+
+  build_and_push:
+    name: Build and push Docker image
+    needs: tests
+    runs-on: ubuntu-latest
+    if: needs.tests.result == 'successful results'
+    env:
+      REGISTRY: docker.io
+      IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/crypto-app
+      IMAGE_TAG: ${{ github.sha }}   
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG .
+
+      - name: Push Docker image to docker Hub
+        run: |
+          docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+
+      - name: Tag image as latest
+        run: |
+          docker tag $REGISTRY/$IMAGE_NAME:$IMAGE_TAG $REGISTRY/$IMAGE_NAME:latest
+          docker push $REGISTRY/$IMAGE_NAME:latest

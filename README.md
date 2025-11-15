@@ -12,7 +12,7 @@ project about devops and pipeline
 ## Setup Steps
 
 
-### 1. Install uv (Ultra-fast Python Package Manager)
+### 1. Install uv (Ultra-fast Python Package Manager).
 ```bash
 # Install uv
 pip install uv
@@ -55,6 +55,6 @@ streamlit run src/webapp/app.py
 ## Development Workflow
 ### Running Tests
 ```bash
-# Run tests with uv
+# Run tests with uv.
 uv run pytest
 ```
