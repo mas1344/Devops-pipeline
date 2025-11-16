@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       log_error:
-        description: "upload error log if tests faail"
+        description: "upload error log if tests fail"
         required: true
         default: "true"
         type: choice
