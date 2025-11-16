@@ -1,4 +1,4 @@
-name: Devops-pipeline
+name: Devops-pipeline Project Masoud
 
 on:
   push:
