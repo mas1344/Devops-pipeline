@@ -1,9 +1,18 @@
-name: Devops-pipeline
+name: Devops-pipeline Project Masoud
 
 on:
   push:
     branches: [ "De25-ms" ]
   workflow_dispatch:
+    inputs:
+      log_error:
+        description: "upload error log if tests faail"
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
   
 
 jobs:
@@ -28,18 +37,20 @@ jobs:
 
       - name: Unit and integration test
         run: |
-          PYTHONPATH=src pytest src/tests/test_crypto_api.py || (echo "tests failed, see below:" > error.log && pytest tests/test_crypto_api.py >> error.log 2>&1)
+          PYTHONPATH=src pytest src/tests/test_crypto_api.py || (
+            echo "tests failed, see below:" > error.log
+            PYTHONPATH=src pytest src/tests/test_crypto_api.py >> error.log 2>&1
+            exit 1
+          )
 
-  log_errors:
-    needs: test
-    runs-on: ubuntu-latest
-    if: ${{ needs.test.result == 'failure' && github.event.inputs.log_errors == 'true' }}
-    steps:
       - name: Upload error log
+        if: ${{ failure() && (github.event.inputs.log_errors == 'true' || github.event_name != 'workflow_dispatch') }}
         uses: actions/upload-artifact@v4
         with:
           name: error-log
           path: error.log
+
+
 
   build-and-push:
     needs: test
